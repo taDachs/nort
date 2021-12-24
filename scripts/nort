@@ -26,6 +26,16 @@ def new_note(args, cfg: Config):
     note = Note(name=args.name, content=f'# {args.name}', tags=args.tags)
 
     path = os.path.join(cfg.notes_path, file_name)
+
+    if os.path.isfile(path):
+        prompt = 'File already exists, override? (y/n): '
+        response = input(prompt)
+        if response.strip().lower()[0] != 'y':
+            print('Aborting...')
+            sys.exit(0)
+
+
+
     with open(path, 'w+') as f:
         f.write(str(note))
 
