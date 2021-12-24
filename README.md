@@ -17,13 +17,14 @@
 ## How to store meta info
 - books can be own folders, or just tags
   - like notable: `Notebooks/peter/` corresponds to a notebook called peter
-- `%%%` signifies start and end of metadata
+- `---` signifies start and end of metadata
+- inside `---` yaml is used
 
 ```markdown
-%%%
+---
 tags: [Notebooks/Work/protocols/2021/April]
 title: Work on 16.04.2021
-%%%
+---
 ```
 
 ## TODO
