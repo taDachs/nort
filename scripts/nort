@@ -7,6 +7,7 @@ import yaml
 
 from nort.config import Config
 from nort.note import Note
+from nort.util import get_prefix
 
 
 def edit_note(args, cfg: Config):
@@ -23,13 +24,11 @@ def edit_note(args, cfg: Config):
 def new_note(args, cfg: Config):
     file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
 
+    note = Note(name=args.name, content=f'# {args.name}', tags=args.tags)
+
     path = os.path.join(cfg.notes_path, file_name)
     with open(path, 'w+') as f:
-        f.write('%%%\n')
-        f.write(f'tags: [{",".join(args.tags)}]\n')
-        f.write(f'name: {args.name}\n')
-        f.write('%%%\n')
-        f.write(f'# {args.name}\n')
+        f.write(str(note))
 
     subprocess.call([cfg.editor, path])
 
@@ -65,6 +64,11 @@ def main(args=None):
 
     parser.set_defaults(func=lambda _, __: parser.print_help())
 
+    parser.add_argument('--config',
+                        type=str,
+                        default=None,
+                        help='override config path')
+
     parser_new = subparser.add_parser('new', help='creates a new note')
     parser_new.add_argument('name', type=str, help='name of note')
     parser_new.add_argument('--tags',
@@ -91,9 +95,18 @@ def main(args=None):
                              help='filters by tags')
     parser_list.set_defaults(func=list_notes)
 
-    cfg = Config.from_yaml('/home/max/Projects/nort/etc/nort.yaml')
-
     args = parser.parse_args()
+
+    if args.config:
+        cfg_path = args.tmux_config
+    elif os.path.exists(os.path.expanduser("~/.nort.yaml")):
+        cfg_path = os.path.expanduser("~/.nort.yaml")
+    elif os.path.exists(os.path.expanduser("~/.config/nort.yaml")):
+        cfg_path = os.path.expanduser("~/.config/nort.yaml")
+    else:
+        prefix = get_prefix()
+        cfg_path = os.path.join(prefix, 'share', 'nort', 'nort.yaml')
+    cfg = Config.from_yaml(cfg_path)
 
     args.func(args, cfg)
 

@@ -1,5 +1,7 @@
 from typing import List
 
+import yaml
+
 
 class Note:
     def __init__(self, name: str, content: str, tags: List[str] = None):
@@ -12,29 +14,34 @@ class Note:
         with open(path, 'r') as f:
             lines = f.readlines()
 
-        started = False
+        meta_started = False
+        metadata = ''
+        content = ''
         for line in lines:
-            if line.strip() == '%%%' and not started:
-                started = True
-            elif line.strip() == '%%%' and started:
-                break
-
-            if not started:
+            if line.strip() == '---' and not meta_started:
+                meta_started = True
                 continue
 
-            if 'name: ' in line:
-                name = line.split(' ')[1].strip()
+            if line.strip() == '---' and meta_started:
+                meta_started = False
+                continue
 
-            if 'tags: ' in line:
-                tags = line.split(' ')[1][1:-2].split(',')
+            if meta_started:
+                metadata += line
+            else:
+                content += line
 
-        return Note(name, '', tags)
+        meta = yaml.safe_load(metadata)
+
+        return Note(meta['name'], content, meta['tags'])
 
     def __repr__(self):
         rep = ''
-        rep += '%%%\n'
-        rep += f'tags: [{",".join(self.tags)}]\n'
-        rep += f'name: {self.name}\n'
-        rep += '%%%\n'
+        rep += '---\n'
+        rep += yaml.dump({'name': self.name, 'tags': self.tags})
+        rep += '---\n'
         rep += self.content
         return rep
+
+    def __str__(self):
+        return repr(self)
