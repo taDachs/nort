@@ -1,9 +1,12 @@
-# Nort
+# Nort (WIP)
 
 ## What do I actually want?
 - generate entries automatically
 - grepable
 - automatically copy undone tasks from yesterday into today
+
+## installation
+- `pip3 install nort`
 
 ## Commands
 - `nort new test -t tag1,tag2,tag3` generates note called test with tags tag1, tag2 and tag3
@@ -12,7 +15,10 @@
 - `nort list --tags tag1` lists notes that have tag1
 
 ## Options
-- `viewer` what viewer gets used by nort view
+Options can be configured in the `~/.nort.yaml` file (or `~/.config/nort/nort.yaml`)
+- `viewer`: which viewer gets used by `nort view`
+- `editor`: which editor gets used by `nort new` and `nort edit`
+- `nort_path`: where to save the notes
 
 ## How to store meta info
 - books can be own folders, or just tags
