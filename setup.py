@@ -14,7 +14,7 @@ setuptools.setup(
     description='A tool for creating and managing notes',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/tadachs/nort',
+    url='https://github.com/taDachs/nort',
     packages=['nort'],
     data_files=[('share/nort', ['etc/nort.yaml'])],
     scripts=['scripts/nort'],
