@@ -1,6 +1,6 @@
 from typing import List
 
-import yaml
+from ruamel import yaml
 
 
 class Note:
@@ -38,7 +38,7 @@ class Note:
     def __repr__(self):
         rep = ''
         rep += '---\n'
-        rep += yaml.dump({'name': self.name, 'tags': self.tags})
+        rep += yaml.safe_dump({'name': self.name, 'tags': self.tags})
         rep += '---\n'
         rep += self.content
         return rep

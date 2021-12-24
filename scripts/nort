@@ -3,7 +3,6 @@ import argparse
 import sys
 import os
 import subprocess
-import yaml
 
 from nort.config import Config
 from nort.note import Note

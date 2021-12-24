@@ -1,5 +1,6 @@
-import yaml
 import os
+
+from ruamel import yaml
 
 
 class Config:
