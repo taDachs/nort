@@ -11,24 +11,20 @@ class Note:
 
     @classmethod
     def from_file(cls, path):
-        with open(path, 'r') as f:
-            lines = f.readlines()
-
         meta_started = False
         metadata = ''
         content = ''
-        for line in lines:
-            if line.strip() == '---' and not meta_started:
-                meta_started = True
-                continue
-
-            if line.strip() == '---' and meta_started:
-                meta_started = False
-                continue
-
-            if meta_started:
+        with open(path, 'r') as f:
+            for line in f:
+                if line.strip() == '---' and not meta_started:
+                    meta_started = True
+                    continue
+                elif line.strip() == '---' and meta_started:
+                    meta_started = False
+                    break
                 metadata += line
-            else:
+
+            for line in f:
                 content += line
 
         meta = yaml.safe_load(metadata)
