@@ -9,10 +9,12 @@
 - `pip3 install nort`
 
 ## Commands
-- `nort new test -t tag1,tag2,tag3` generates note called test with tags tag1, tag2 and tag3
-- `nort view [name]` opens note in viewer, specified in settings
-- `nort list` lists all notes
-- `nort list --tags tag1` lists notes that have tag1
+- [x] `nort new test --tags tag1,tag2,tag3` generates note called test with tags tag1, tag2 and tag3
+- [ ] `nort gen [template]` generates a note with template
+- [ ] `nort search` TODO
+- [x] `nort view [name]` opens note in viewer, specified in settings
+- [x] `nort list` lists all notes
+- [x] `nort list --tags tag1` lists notes that have tag1
 
 ## Options
 Options can be configured in the `~/.nort.yaml` file (or `~/.config/nort/nort.yaml`)
@@ -28,11 +30,11 @@ Options can be configured in the `~/.nort.yaml` file (or `~/.config/nort/nort.ya
 
 ```markdown
 ---
-tags: [Notebooks/Work/protocols/2021/April]
+tags: [Notebooks/Work/protocols/2021/April, Todo]
 title: Work on 16.04.2021
 ---
 ```
 
 ## TODO
 - [x] implement nort new
-- [ ] implement nort list
+- [x] implement nort list
