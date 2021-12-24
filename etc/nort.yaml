@@ -1,0 +1,3 @@
+editor: 'nvim'
+viewer: 'mdless'
+notes_path: '/home/max/Projects/nort/test_notes/'

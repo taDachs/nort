@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+import argparse
+import sys
+import os
+import subprocess
+import yaml
+
+from nort.config import Config
+from nort.note import Note
+
+
+def edit_note(args, cfg: Config):
+    file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+
+    if not os.path.isfile(path):
+        print(f'ERROR: {path} is not a valid file')
+        sys.exit(1)
+    subprocess.call([cfg.editor, path])
+
+
+def new_note(args, cfg: Config):
+    file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+    with open(path, 'w+') as f:
+        f.write('%%%\n')
+        f.write(f'tags: [{",".join(args.tags)}]\n')
+        f.write(f'name: {args.name}\n')
+        f.write('%%%\n')
+        f.write(f'# {args.name}\n')
+
+    subprocess.call([cfg.editor, path])
+
+
+def view_note(args, cfg: Config):
+    file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+    subprocess.call([cfg.viewer, path])
+
+
+def list_notes(args, cfg: Config):
+    notes = []
+    for f in os.listdir(cfg.notes_path):
+        filename, file_extension = os.path.splitext(f)
+        if file_extension == '.md':
+            path = os.path.join(cfg.notes_path, f)
+            note = Note.from_file(path)
+
+            if args.tags:
+                if list(filter(lambda x: x in args.tags, note.tags)):
+                    notes.append(note)
+            else:
+                notes.append(note)
+
+    for note in notes:
+        print(note.name)
+
+
+def main(args=None):
+    parser = argparse.ArgumentParser(description='')
+    subparser = parser.add_subparsers()
+
+    parser.set_defaults(func=lambda _, __: parser.print_help())
+
+    parser_new = subparser.add_parser('new', help='creates a new note')
+    parser_new.add_argument('name', type=str, help='name of note')
+    parser_new.add_argument('--tags',
+                            default=[],
+                            type=str,
+                            nargs='+',
+                            help='adds tags to note')
+    parser_new.set_defaults(func=new_note)
+
+    parser_edit = subparser.add_parser('edit', help='edit a existing note')
+    parser_edit.add_argument('name', type=str, help='name of note')
+    parser_edit.set_defaults(func=edit_note)
+
+    parser_view = subparser.add_parser('view',
+                                       help='views the note in the viewer')
+    parser_view.add_argument('name', type=str, help='name of note')
+    parser_view.set_defaults(func=view_note)
+
+    parser_list = subparser.add_parser('list', help='list available notes')
+    parser_list.add_argument('--tags',
+                             default=[],
+                             type=str,
+                             nargs='+',
+                             help='filters by tags')
+    parser_list.set_defaults(func=list_notes)
+
+    cfg = Config.from_yaml('/home/max/Projects/nort/etc/nort.yaml')
+
+    args = parser.parse_args()
+
+    args.func(args, cfg)
+
+
+if __name__ == '__main__':
+    main(sys.argv)
