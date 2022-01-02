@@ -112,8 +112,6 @@ def main(args=None):
 
     if args.template_file:
         template_path = args.template_file
-    elif os.path.exists(os.path.expanduser("~/.template.py")):
-        template_path = os.path.expanduser("~/.template.py")
     elif os.path.exists(os.path.expanduser("~/.config/nort/template.py")):
         template_path = os.path.expanduser("~/.config/nort/template.py")
     else:
@@ -121,10 +119,10 @@ def main(args=None):
 
     if args.config:
         cfg_path = args.config
-    elif os.path.exists(os.path.expanduser("~/.nort.yaml")):
-        cfg_path = os.path.expanduser("~/.nort.yaml")
     elif os.path.exists(os.path.expanduser("~/.config/nort/nort.yaml")):
         cfg_path = os.path.expanduser("~/.config/nort/nort.yaml")
+    elif os.path.exists(os.path.expanduser("~/.nort.yaml")):
+        cfg_path = os.path.expanduser("~/.nort.yaml")
     else:
         prefix = get_prefix()
         cfg_path = os.path.join(prefix, 'share', 'nort', 'nort.yaml')
