@@ -101,7 +101,9 @@ def list_notes(tags: List[str] = None,
                     if tag.lower() not in note.tags:
                         matches = False
 
-            if matches:
+                if matches:
+                    notes.append(note)
+            else:
                 notes.append(note)
 
     notes.sort(key=lambda x: x.created)
