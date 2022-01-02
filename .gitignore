@@ -2,3 +2,6 @@ build
 dist
 nort.egg-info
 test
+__pycache__/
+*.py[cod]
+

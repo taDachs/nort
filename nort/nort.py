@@ -1,0 +1,111 @@
+import os
+import subprocess
+from typing import List
+
+from .config import Config
+from .note import Note
+from .template import template_by_name
+
+
+class NoteExistsException(Exception):
+    pass
+
+
+def get_note_name(cfg: Config, name: str = None, template: str = None):
+    if name:
+        return name
+    else:
+        if not template:
+            raise ValueError('Missing name')
+        note = template_by_name(template, cfg).to_note()
+        return note.name
+
+
+def load_note_by_name(name: str, cfg: Config):
+    file_name = name if '.md' == name[-3:] else name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+    if not os.path.isfile(path):
+        raise ValueError('File {path} does not exist')
+    note = Note.from_file(path)
+    return note
+
+
+def edit_note(template: str, name: str, cfg: Config, **kwargs):
+    if template and name:
+        raise ValueError(
+            'Can\'t use both name and template argument in same command')
+
+    note_name = get_note_name(cfg=cfg, name=name, template=template)
+    file_name = note_name if '.md' == note_name[-3:] else note_name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+
+    if not os.path.isfile(path):
+        raise ValueError(f'{path} is not a valid file')
+
+    subprocess.call([cfg.editor, path])
+
+
+def new_note(template: str,
+             name: str,
+             cfg: Config,
+             tags: List[str] = None,
+             override: bool = False,
+             **kwargs):
+    if not tags:
+        tags = []
+
+    name = get_note_name(cfg, name, template)
+
+    if template:
+        note = template_by_name(template, cfg).to_note()
+        note.name = name
+        note.tags += tags
+    else:
+        if not name:
+            raise ValueError('missing name')
+        tags = tags
+        note = Note(name=name, content=f'# {name}', tags=tags)
+
+    file_name = name if '.md' == name[-3:] else name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+
+    if os.path.isfile(path) and not override:
+        raise NoteExistsException('File already exists')
+
+    with open(path, 'w+') as f:
+        f.write(str(note))
+
+    subprocess.call([cfg.editor, path])
+
+
+def view_note(name: str, file_name: str, cfg: Config, **kwargs):
+    file_name = name if '.md' == name[-3:] else name + '.md'
+
+    path = os.path.join(cfg.notes_path, file_name)
+    subprocess.call([cfg.viewer, path])
+
+
+def list_notes(tags: List[str] = None,
+               cfg: Config = None,
+               **kwargs) -> List[Note]:
+    if not tags:
+        tags = []
+    if not cfg:
+        raise ValueError('No config given')
+    notes = []
+    for f in os.listdir(cfg.notes_path):
+        filename, file_extension = os.path.splitext(f)
+        if file_extension == '.md':
+            path = os.path.join(cfg.notes_path, f)
+            note = Note.from_file(path)
+
+            if tags:
+                if list(filter(lambda x: x in tags, note.tags)):
+                    notes.append(note)
+            else:
+                notes.append(note)
+
+    return notes

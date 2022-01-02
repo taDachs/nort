@@ -9,8 +9,7 @@
 - `pip3 install nort`
 
 ## Commands
-- [x] `nort new test --tags tag1,tag2,tag3` generates note called test with tags tag1, tag2 and tag3
-- [ ] `nort gen [template]` generates a note with template
+- [x] `nort new test --tags tag1 tag2 tag3` generates note called test with tags tag1, tag2 and tag3
 - [ ] `nort search` TODO
 - [x] `nort view [name]` opens note in viewer, specified in settings
 - [x] `nort list` lists all notes
@@ -34,6 +33,8 @@ tags: [Notebooks/Work/protocols/2021/April, Todo]
 title: Work on 16.04.2021
 ---
 ```
+
+## Template File
 
 ## TODO
 - [x] implement nort new

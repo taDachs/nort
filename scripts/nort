@@ -2,69 +2,38 @@
 import argparse
 import sys
 import os
-import subprocess
 
 from nort.config import Config
-from nort.note import Note
 from nort.util import get_prefix
+from nort.nort import (edit_note, new_note, view_note,
+                       list_notes, NoteExistsException)
 
 
-def edit_note(args, cfg: Config):
-    file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
-
-    path = os.path.join(cfg.notes_path, file_name)
-
-    if not os.path.isfile(path):
-        print(f'ERROR: {path} is not a valid file')
-        sys.exit(1)
-    subprocess.call([cfg.editor, path])
-
-
-def new_note(args, cfg: Config):
-    file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
-
-    note = Note(name=args.name, content=f'# {args.name}', tags=args.tags)
-
-    path = os.path.join(cfg.notes_path, file_name)
-
-    if os.path.isfile(path):
-        prompt = 'File already exists, override? (y/n): '
-        response = input(prompt)
-        if response.strip().lower()[0] != 'y':
-            print('Aborting...')
-            sys.exit(0)
-
-
-
-    with open(path, 'w+') as f:
-        f.write(str(note))
-
-    subprocess.call([cfg.editor, path])
-
-
-def view_note(args, cfg: Config):
-    file_name = args.name if '.md' == args.name[-3:] else args.name + '.md'
-
-    path = os.path.join(cfg.notes_path, file_name)
-    subprocess.call([cfg.viewer, path])
-
-
-def list_notes(args, cfg: Config):
-    notes = []
-    for f in os.listdir(cfg.notes_path):
-        filename, file_extension = os.path.splitext(f)
-        if file_extension == '.md':
-            path = os.path.join(cfg.notes_path, f)
-            note = Note.from_file(path)
-
-            if args.tags:
-                if list(filter(lambda x: x in args.tags, note.tags)):
-                    notes.append(note)
-            else:
-                notes.append(note)
-
+def list_notes_wrap(args, cfg):
+    notes = list_notes(**args, cfg=cfg)
     for note in notes:
         print(note.name)
+
+
+def new_note_wrap(args, cfg):
+    try:
+        new_note(**args, cfg=cfg)
+    except NoteExistsException:
+        prompt = 'File already exists, override? (y/N): '
+        response = input(prompt)
+        if not response or response.strip().lower()[0] != 'y':
+            print('Aborting...')
+            return
+        else:
+            new_note(**args, cfg=cfg, override=True)
+
+
+def view_note_wrap(args, cfg):
+    view_note(**args, cfg=cfg)
+
+
+def edit_note_wrap(args, cfg):
+    edit_note(**args, cfg=cfg)
 
 
 def main(args=None):
@@ -78,23 +47,48 @@ def main(args=None):
                         default=None,
                         help='override config path')
 
+    parser.add_argument('--template-file',
+                        type=str,
+                        default=None,
+                        help='override template file')
+
     parser_new = subparser.add_parser('new', help='creates a new note')
-    parser_new.add_argument('name', type=str, help='name of note')
+    parser_new.add_argument('name',
+                            type=str,
+                            help='name of note',
+                            nargs='?',
+                            default=None)
     parser_new.add_argument('--tags',
                             default=[],
                             type=str,
                             nargs='+',
                             help='adds tags to note')
-    parser_new.set_defaults(func=new_note)
+    parser_new.add_argument('--template',
+                            '-t',
+                            type=str,
+                            help='Specifies template to use. If [name] is not'
+                            ' given, the one supplied by the template will'
+                            ' be used.')
+    parser_new.set_defaults(func=new_note_wrap)
 
     parser_edit = subparser.add_parser('edit', help='edit a existing note')
-    parser_edit.add_argument('name', type=str, help='name of note')
-    parser_edit.set_defaults(func=edit_note)
+    parser_edit.add_argument('name',
+                             type=str,
+                             help='name of note',
+                             nargs='?',
+                             default=None)
+    parser_edit.add_argument('--template',
+                             '-t',
+                             type=str,
+                             help='Specifies template to use. If [name] is not'
+                             ' given, the one supplied by the template will'
+                             ' be used.')
+    parser_edit.set_defaults(func=edit_note_wrap)
 
     parser_view = subparser.add_parser('view',
                                        help='views the note in the viewer')
     parser_view.add_argument('name', type=str, help='name of note')
-    parser_view.set_defaults(func=view_note)
+    parser_view.set_defaults(func=view_note_wrap)
 
     parser_list = subparser.add_parser('list', help='list available notes')
     parser_list.add_argument('--tags',
@@ -102,22 +96,36 @@ def main(args=None):
                              type=str,
                              nargs='+',
                              help='filters by tags')
-    parser_list.set_defaults(func=list_notes)
+    parser_list.set_defaults(func=list_notes_wrap)
 
     args = parser.parse_args()
 
+    if args.template_file:
+        template_path = args.template_file
+    elif os.path.exists(os.path.expanduser("~/.template.py")):
+        template_path = os.path.expanduser("~/.template.py")
+    elif os.path.exists(os.path.expanduser("~/.config/nort/template.py")):
+        template_path = os.path.expanduser("~/.config/nort/template.py")
+    else:
+        template_path = ''
+
     if args.config:
-        cfg_path = args.tmux_config
+        cfg_path = args.config
     elif os.path.exists(os.path.expanduser("~/.nort.yaml")):
         cfg_path = os.path.expanduser("~/.nort.yaml")
-    elif os.path.exists(os.path.expanduser("~/.config/nort.yaml")):
-        cfg_path = os.path.expanduser("~/.config/nort.yaml")
+    elif os.path.exists(os.path.expanduser("~/.config/nort/nort.yaml")):
+        cfg_path = os.path.expanduser("~/.config/nort/nort.yaml")
     else:
         prefix = get_prefix()
         cfg_path = os.path.join(prefix, 'share', 'nort', 'nort.yaml')
     cfg = Config.from_yaml(cfg_path)
+    cfg.template_path = template_path
 
-    args.func(args, cfg)
+    try:
+        args.func(vars(args), cfg)
+    except ValueError as e:
+        print(f'ERROR: {e}')
+        sys.exit(1)
 
 
 if __name__ == '__main__':
