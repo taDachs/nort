@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import sys
+import subprocess
 import os
 
 from nort.config import Config
 from nort.util import get_prefix
-from nort.nort import (edit_note, new_note, view_note,
-                       list_notes, NoteExistsException)
+from nort.nort import (new_note, get_filename, list_notes, NoteExistsException)
 
 
 def list_notes_wrap(args, cfg):
@@ -17,7 +17,7 @@ def list_notes_wrap(args, cfg):
 
 def new_note_wrap(args, cfg):
     try:
-        new_note(**args, cfg=cfg)
+        path = new_note(**args, cfg=cfg)
     except NoteExistsException:
         prompt = 'File already exists, override? (y/N): '
         response = input(prompt)
@@ -25,15 +25,19 @@ def new_note_wrap(args, cfg):
             print('Aborting...')
             return
         else:
-            new_note(**args, cfg=cfg, override=True)
+            path = new_note(**args, cfg=cfg, override=True)
+
+    subprocess.call([cfg.editor, path])
 
 
 def view_note_wrap(args, cfg):
-    view_note(**args, cfg=cfg)
+    path = get_filename(**args, cfg=cfg)
+    subprocess.call([cfg.viewer, path])
 
 
 def edit_note_wrap(args, cfg):
-    edit_note(**args, cfg=cfg)
+    path = get_filename(**args, cfg=cfg)
+    subprocess.call([cfg.editor, path])
 
 
 def main(args=None):
@@ -87,7 +91,13 @@ def main(args=None):
 
     parser_view = subparser.add_parser('view',
                                        help='views the note in the viewer')
-    parser_view.add_argument('name', type=str, help='name of note')
+    parser_view.add_argument('name', nargs='?', type=str, help='name of note')
+    parser_view.add_argument('--template',
+                             '-t',
+                             type=str,
+                             help='Specifies template to use. If [name] is not'
+                             ' given, the one supplied by the template will'
+                             ' be used.')
     parser_view.set_defaults(func=view_note_wrap)
 
     parser_list = subparser.add_parser('list', help='list available notes')

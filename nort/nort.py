@@ -1,5 +1,4 @@
 import os
-import subprocess
 from typing import List
 
 from .config import Config
@@ -11,7 +10,7 @@ class NoteExistsException(Exception):
     pass
 
 
-def get_note_name(cfg: Config, name: str = None, template: str = None):
+def get_note_name(cfg: Config, name: str = None, template: str = None) -> str:
     if name:
         return name
     else:
@@ -21,17 +20,17 @@ def get_note_name(cfg: Config, name: str = None, template: str = None):
         return note.name
 
 
-def load_note_by_name(name: str, cfg: Config):
+def load_note_by_name(name: str, cfg: Config) -> Note:
     file_name = name if '.md' == name[-3:] else name + '.md'
 
     path = os.path.join(cfg.notes_path, file_name)
     if not os.path.isfile(path):
-        raise ValueError('File {path} does not exist')
+        raise ValueError(f'File {path} does not exist')
     note = Note.from_file(path)
     return note
 
 
-def edit_note(template: str, name: str, cfg: Config, **kwargs):
+def get_filename(template: str, name: str, cfg: Config, **kwargs) -> str:
     if template and name:
         raise ValueError(
             'Can\'t use both name and template argument in same command')
@@ -42,9 +41,9 @@ def edit_note(template: str, name: str, cfg: Config, **kwargs):
     path = os.path.join(cfg.notes_path, file_name)
 
     if not os.path.isfile(path):
-        raise ValueError(f'{path} is not a valid file')
+        raise ValueError(f'{name if name else path} does not exist')
 
-    subprocess.call([cfg.editor, path])
+    return path
 
 
 def new_note(template: str,
@@ -52,7 +51,7 @@ def new_note(template: str,
              cfg: Config,
              tags: List[str] = None,
              override: bool = False,
-             **kwargs):
+             **kwargs) -> str:
     if not tags:
         tags = []
 
@@ -73,19 +72,12 @@ def new_note(template: str,
     path = os.path.join(cfg.notes_path, file_name)
 
     if os.path.isfile(path) and not override:
-        raise NoteExistsException('File already exists')
+        raise NoteExistsException(f'File {path} already exists')
 
     with open(path, 'w+') as f:
         f.write(str(note))
 
-    subprocess.call([cfg.editor, path])
-
-
-def view_note(name: str, file_name: str, cfg: Config, **kwargs):
-    file_name = name if '.md' == name[-3:] else name + '.md'
-
-    path = os.path.join(cfg.notes_path, file_name)
-    subprocess.call([cfg.viewer, path])
+    return path
 
 
 def list_notes(tags: List[str] = None,
@@ -93,6 +85,7 @@ def list_notes(tags: List[str] = None,
                **kwargs) -> List[Note]:
     if not tags:
         tags = []
+    tags = list(map(lambda x: x.lower(), tags))
     if not cfg:
         raise ValueError('No config given')
     notes = []
@@ -103,7 +96,7 @@ def list_notes(tags: List[str] = None,
             note = Note.from_file(path)
 
             if tags:
-                if list(filter(lambda x: x in tags, note.tags)):
+                if list(filter(lambda x: x.lower() in tags, note.tags)):
                     notes.append(note)
             else:
                 notes.append(note)
