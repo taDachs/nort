@@ -1,6 +1,7 @@
 from typing import List
 from datetime import datetime
 import re
+import os
 
 from ruamel import yaml
 
@@ -18,11 +19,13 @@ class Note:
         self.name = name
         self.content = content
         self.tags = tags
-        self.file_name = name if '.md' == name[-3:] else name + '.md'
         if created:
             self.created = created
         else:
             self.created = datetime.now()
+
+    def get_filename(self):
+        return self.name if '.md' == self.name[-3:] else self.name + '.md'
 
     def get_section(self, title: str) -> str:
         lines = self.content.split('\n')
@@ -56,14 +59,25 @@ class Note:
                 elif line.strip() == '---' and meta_started:
                     meta_started = False
                     break
-                metadata += line
+                if meta_started:
+                    metadata += line
 
             for line in f:
                 content += line
 
-        meta = yaml.safe_load(metadata)
+        if metadata:
+            meta = yaml.safe_load(metadata)
+            if 'name' not in meta:
+                # for backwards compatability
+                meta['name'] = meta['title']
+        else:
+            name, _ = os.path.splitext(os.path.basename(path))
+            meta = {'name': name, 'tags': [], 'created': None}
 
         return Note(meta['name'], content, meta['tags'], meta['created'])
+
+    def __repr__(self):
+        return f'Note({self.name}, {self.tags}, {self.created})'
 
     def __str__(self):
         rep = ''

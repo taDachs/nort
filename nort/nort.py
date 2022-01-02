@@ -96,9 +96,13 @@ def list_notes(tags: List[str] = None,
             note = Note.from_file(path)
 
             if tags:
-                if list(filter(lambda x: x.lower() in tags, note.tags)):
-                    notes.append(note)
-            else:
+                matches = True
+                for tag in tags:
+                    if tag.lower() not in note.tags:
+                        matches = False
+
+            if matches:
                 notes.append(note)
 
+    notes.sort(key=lambda x: x.created)
     return notes
