@@ -65,6 +65,10 @@ class Note:
             for line in f:
                 content += line
 
+        if not content:
+            with open(path, 'r') as f:
+                content = '\n'.join(map(lambda x: x.strip(), f.readlines()))
+
         if metadata:
             meta = yaml.safe_load(metadata)
             if 'name' not in meta:
