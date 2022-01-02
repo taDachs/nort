@@ -30,10 +30,19 @@ def load_note_by_name(name: str, cfg: Config) -> Note:
     return note
 
 
-def get_filename(template: str, name: str, cfg: Config, **kwargs) -> str:
+def get_filename(template: str = None,
+                 name: str = None,
+                 cfg: Config = None,
+                 **kwargs) -> str:
     if template and name:
         raise ValueError(
             'Can\'t use both name and template argument in same command')
+
+    if not (template or name):
+        raise ValueError('Either name or template must be given')
+
+    if not cfg:
+        raise ValueError('No config given')
 
     note_name = get_note_name(cfg=cfg, name=name, template=template)
     file_name = note_name if '.md' == note_name[-3:] else note_name + '.md'

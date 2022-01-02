@@ -40,6 +40,17 @@ def edit_note_wrap(args, cfg):
     subprocess.call([cfg.editor, path])
 
 
+def remove_notes_wrap(args, cfg):
+    path = get_filename(**args, cfg=cfg)
+    prompt = f'Are you sure you want to delete file {path}? (y/N): '
+    response = input(prompt)
+    if not response or response.strip().lower()[0] != 'y':
+        print('Aborting...')
+        return
+    else:
+        subprocess.call(['rm', path])
+
+
 def main(args=None):
     parser = argparse.ArgumentParser(description='')
     subparser = parser.add_subparsers()
@@ -107,6 +118,12 @@ def main(args=None):
                              nargs='+',
                              help='filters by tags')
     parser_list.set_defaults(func=list_notes_wrap)
+
+    parser_remove = subparser.add_parser('remove', help='removes note')
+    parser_remove.add_argument('name',
+                               type=str,
+                               help='name of note')
+    parser_remove.set_defaults(func=remove_notes_wrap)
 
     args = parser.parse_args()
 

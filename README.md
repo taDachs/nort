@@ -35,6 +35,7 @@ title: Work on 16.04.2021
 ```
 
 ## Template File
+Read from `~/.config/nort/template.py`, see example file
 
 ## TODO
 - [x] implement nort new
