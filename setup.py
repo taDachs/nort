@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setuptools.setup(
     name='nort',
-    version='0.1.0',
+    version='0.2.0',
     license='MIT',
     author='Max Schik',
     author_email='max.schik@googlemail.com',
