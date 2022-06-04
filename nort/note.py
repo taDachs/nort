@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 import re
 import os
@@ -14,7 +14,7 @@ class Note:
     def __init__(self,
                  name: str,
                  content: str,
-                 tags: List[str] = None,
+                 tags: Optional[List[str]] = None,
                  created=None):
         self.name = name
         self.content = content
@@ -48,26 +48,23 @@ class Note:
 
     @classmethod
     def from_file(cls, path):
-        meta_started = False
         metadata = ''
         content = ''
         with open(path, 'r') as f:
+            line = ''
             for line in f:
-                if line.strip() == '---' and not meta_started:
-                    meta_started = True
-                    continue
-                elif line.strip() == '---' and meta_started:
-                    meta_started = False
+                if line.strip():
                     break
-                if meta_started:
-                    metadata += line
-
-            for line in f:
-                content += line
-
-        if not content:
-            with open(path, 'r') as f:
-                content = '\n'.join(map(lambda x: x.strip(), f.readlines()))
+            if line != "---":
+                content = line + "".join(f)
+            else:
+                for line in f:
+                    if line.strip() == '---':
+                        break
+                    else:
+                        metadata += line
+                for line in f:
+                    content += line
 
         if metadata:
             meta = yaml.safe_load(metadata)
