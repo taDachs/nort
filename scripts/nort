@@ -27,17 +27,17 @@ def new_note_wrap(args, cfg):
         else:
             path = new_note(**args, cfg=cfg, override=True)
 
-    subprocess.call([cfg.editor, path])
+    subprocess.call([*cfg.editor.split(" "), path])
 
 
 def view_note_wrap(args, cfg):
     path = get_filename(**args, cfg=cfg)
-    subprocess.call([cfg.viewer, path])
+    subprocess.call([*cfg.viewer.split(" "), path])
 
 
 def edit_note_wrap(args, cfg):
     path = get_filename(**args, cfg=cfg)
-    subprocess.call([cfg.editor, path])
+    subprocess.call([*cfg.editor.split(" "), path])
 
 
 def remove_notes_wrap(args, cfg):
@@ -55,7 +55,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description='')
     subparser = parser.add_subparsers()
 
-    parser.set_defaults(func=lambda _, __: parser.print_help())
+    parser.set_defaults(func=lambda _: parser.print_help())
 
     parser.add_argument('--config',
                         type=str,
