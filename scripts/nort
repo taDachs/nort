@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import argparse
-import sys
-import subprocess
 import os
+import subprocess
+import sys
 
 from nort.config import Config
+from nort.nort import NoteExistsException, get_filename, list_notes, new_note
 from nort.util import get_prefix
-from nort.nort import (new_note, get_filename, list_notes, NoteExistsException)
 
 
 def list_notes_wrap(args, cfg):
@@ -19,10 +19,10 @@ def new_note_wrap(args, cfg):
     try:
         path = new_note(**args, cfg=cfg)
     except NoteExistsException:
-        prompt = 'File already exists, override? (y/N): '
+        prompt = "File already exists, override? (y/N): "
         response = input(prompt)
-        if not response or response.strip().lower()[0] != 'y':
-            print('Aborting...')
+        if not response or response.strip().lower()[0] != "y":
+            print("Aborting...")
             return
         else:
             path = new_note(**args, cfg=cfg, override=True)
@@ -42,87 +42,68 @@ def edit_note_wrap(args, cfg):
 
 def remove_notes_wrap(args, cfg):
     path = get_filename(**args, cfg=cfg)
-    prompt = f'Are you sure you want to delete file {path}? (y/N): '
+    prompt = f"Are you sure you want to delete file {path}? (y/N): "
     response = input(prompt)
-    if not response or response.strip().lower()[0] != 'y':
-        print('Aborting...')
+    if not response or response.strip().lower()[0] != "y":
+        print("Aborting...")
         return
     else:
-        subprocess.call(['rm', path])
+        subprocess.call(["rm", path])
 
 
 def main(args=None):
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description="")
     subparser = parser.add_subparsers()
 
     parser.set_defaults(func=lambda _: parser.print_help())
 
-    parser.add_argument('--config',
-                        type=str,
-                        default=None,
-                        help='override config path')
+    parser.add_argument("--config", type=str, default=None, help="override config path")
 
-    parser.add_argument('--template-file',
-                        type=str,
-                        default=None,
-                        help='override template file')
+    parser.add_argument("--template-file", type=str, default=None, help="override template file")
 
-    parser_new = subparser.add_parser('new', help='creates a new note')
-    parser_new.add_argument('name',
-                            type=str,
-                            help='name of note',
-                            nargs='?',
-                            default=None)
-    parser_new.add_argument('--tags',
-                            default=[],
-                            type=str,
-                            nargs='+',
-                            help='adds tags to note')
-    parser_new.add_argument('--template',
-                            '-t',
-                            type=str,
-                            help='Specifies template to use. If [name] is not'
-                            ' given, the one supplied by the template will'
-                            ' be used.')
+    parser_new = subparser.add_parser("new", help="creates a new note")
+    parser_new.add_argument("name", type=str, help="name of note", nargs="?", default=None)
+    parser_new.add_argument("--tags", default=[], type=str, nargs="+", help="adds tags to note")
+    parser_new.add_argument(
+        "--template",
+        "-t",
+        type=str,
+        help="Specifies template to use. If [name] is not"
+        " given, the one supplied by the template will"
+        " be used.",
+    )
     parser_new.set_defaults(func=new_note_wrap)
 
-    parser_edit = subparser.add_parser('edit', help='edit a existing note')
-    parser_edit.add_argument('name',
-                             type=str,
-                             help='name of note',
-                             nargs='?',
-                             default=None)
-    parser_edit.add_argument('--template',
-                             '-t',
-                             type=str,
-                             help='Specifies template to use. If [name] is not'
-                             ' given, the one supplied by the template will'
-                             ' be used.')
+    parser_edit = subparser.add_parser("edit", help="edit a existing note")
+    parser_edit.add_argument("name", type=str, help="name of note", nargs="?", default=None)
+    parser_edit.add_argument(
+        "--template",
+        "-t",
+        type=str,
+        help="Specifies template to use. If [name] is not"
+        " given, the one supplied by the template will"
+        " be used.",
+    )
     parser_edit.set_defaults(func=edit_note_wrap)
 
-    parser_view = subparser.add_parser('view',
-                                       help='views the note in the viewer')
-    parser_view.add_argument('name', nargs='?', type=str, help='name of note')
-    parser_view.add_argument('--template',
-                             '-t',
-                             type=str,
-                             help='Specifies template to use. If [name] is not'
-                             ' given, the one supplied by the template will'
-                             ' be used.')
+    parser_view = subparser.add_parser("view", help="views the note in the viewer")
+    parser_view.add_argument("name", nargs="?", type=str, help="name of note")
+    parser_view.add_argument(
+        "--template",
+        "-t",
+        type=str,
+        help="Specifies template to use. If [name] is not"
+        " given, the one supplied by the template will"
+        " be used.",
+    )
     parser_view.set_defaults(func=view_note_wrap)
 
-    parser_list = subparser.add_parser('list', help='list available notes')
-    parser_list.add_argument('--tags',
-                             default=[],
-                             type=str,
-                             nargs='+',
-                             help='filters by tags')
+    parser_list = subparser.add_parser("list", help="list available notes")
+    parser_list.add_argument("--tags", default=[], type=str, nargs="+", help="filters by tags")
     parser_list.set_defaults(func=list_notes_wrap)
 
-    parser_remove = subparser.add_parser('remove', help='removes note')
-    parser_remove.add_argument('name',
-                               type=str,
-                               help='name of note')
+    parser_remove = subparser.add_parser("remove", help="removes note")
+    parser_remove.add_argument("name", type=str, help="name of note")
     parser_remove.set_defaults(func=remove_notes_wrap)
 
     args = parser.parse_args()
@@ -132,7 +113,7 @@ def main(args=None):
     elif os.path.exists(os.path.expanduser("~/.config/nort/template.py")):
         template_path = os.path.expanduser("~/.config/nort/template.py")
     else:
-        template_path = ''
+        template_path = ""
 
     if args.config:
         cfg_path = args.config
@@ -142,16 +123,16 @@ def main(args=None):
         cfg_path = os.path.expanduser("~/.nort.yaml")
     else:
         prefix = get_prefix()
-        cfg_path = os.path.join(prefix, 'share', 'nort', 'nort.yaml')
+        cfg_path = os.path.join(prefix, "share", "nort", "nort.yaml")
     cfg = Config.from_yaml(cfg_path)
     cfg.template_path = template_path
 
     try:
         args.func(vars(args), cfg)
     except ValueError as e:
-        print(f'ERROR: {e}')
+        print(f"ERROR: {e}")
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

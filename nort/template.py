@@ -1,16 +1,16 @@
 import importlib.util
-import os
 import inspect
+import os
 from abc import ABC, abstractmethod
-from typing import List
 from datetime import date, datetime
+from typing import List
 
-from .note import Note
 from .config import Config
+from .note import Note
 
 substitutions = {
-    '[[DATE]]': date.today().strftime('%d.%m.%Y'),
-    '[[TIME]]': datetime.now().strftime('%H:%M'),
+    "[[DATE]]": date.today().strftime("%d.%m.%Y"),
+    "[[TIME]]": datetime.now().strftime("%H:%M"),
 }
 
 
@@ -50,18 +50,22 @@ class Template(ABC):
 def template_by_name(name: str, cfg: Config) -> Template:
     path = cfg.template_path
     if os.path.isfile(path):
-        spec = importlib.util.spec_from_file_location('user_templates', path)
+        spec = importlib.util.spec_from_file_location("user_templates", path)
+        if spec is None:
+            raise ValueError("An error occured while reading user_tempaltes")
         foo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(foo)
         clsmembers = inspect.getmembers(foo, inspect.isclass)
         try:
             _, cls = next(
                 filter(
-                    lambda x: x[0].lower() == name.lower() and issubclass(
-                        x[1], Template), clsmembers))
+                    lambda x: x[0].lower() == name.lower() and issubclass(x[1], Template),
+                    clsmembers,
+                )
+            )
         except StopIteration:
-            raise ValueError(f'{name} is not a valid template name')
+            raise ValueError(f"{name} is not a valid template name")
         Template.set_config(cfg)
         return cls()
     else:
-        raise ValueError('No template file exists')
+        raise ValueError("No template file exists")

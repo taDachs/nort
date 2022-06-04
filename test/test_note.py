@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 import os
-import unittest
 import tempfile
+import unittest
 
 from nort.note import Note
 
+
 class TestNoteParsing(unittest.TestCase):
     """Test case docstring."""
+
     def test_missing_metadata(self):
         test_content = "# Test\n---\nsomething that is not yaml\n---\n"
         with tempfile.TemporaryDirectory() as t:
@@ -20,6 +22,7 @@ class TestNoteParsing(unittest.TestCase):
         with open("testshit", "w+") as f:
             f.write(res)
         self.assertEqual(test_content.strip(), res.strip())
+
 
 if __name__ == "__main__":
     unittest.main()
