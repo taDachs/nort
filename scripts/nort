@@ -55,7 +55,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description="")
     subparser = parser.add_subparsers()
 
-    parser.set_defaults(func=lambda _: parser.print_help())
+    parser.set_defaults(func=lambda _, __: parser.print_help())
 
     parser.add_argument("--config", type=str, default=None, help="override config path")
 
